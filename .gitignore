@@ -1,2 +1,3 @@
-prepare_checkin.py
+
 checkin_env/
+.DS_Store

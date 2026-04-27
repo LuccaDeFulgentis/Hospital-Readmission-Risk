@@ -1,3 +1,11 @@
+**How to Run**
+
+To reproduce our analysis, visualizations, and generate the check-in report, run the following script from the root of this directory:
+```bash
+python prepare_checkin.py
+```
+This requires `pandas`, `numpy`, `matplotlib`, `seaborn`, `scikit-learn`, and `ucimlrepo` to be installed.
+
 **Topic**
 
 This project studies hospital readmissions among diabetic patients. Hospital readmissions within 30 days are costly and are used as a quality metric in healthcare systems. Using clinical and demographic data, we aim to analyze patterns associated with readmission risk.
