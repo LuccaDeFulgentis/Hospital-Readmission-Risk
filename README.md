@@ -2,7 +2,7 @@
 
 To reproduce our analysis, visualizations, and generate the check-in report, run the following script from the root of this directory:
 ```bash
-python prepare_checkin.py
+python src/train.py
 ```
 This requires `pandas`, `numpy`, `matplotlib`, `seaborn`, `scikit-learn`, and `ucimlrepo` to be installed.
 
