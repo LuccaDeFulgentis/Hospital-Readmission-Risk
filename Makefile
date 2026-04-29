@@ -1,8 +1,11 @@
+PYTHON = $(shell if [ -f ./checkin_env/bin/python3 ]; then echo "./checkin_env/bin/python3"; else echo "python"; fi)
+PYTEST = $(shell if [ -f ./checkin_env/bin/pytest ]; then echo "./checkin_env/bin/pytest"; else echo "pytest"; fi)
+
 install:
 	pip install -r requirements.txt
 
 run:
-	./checkin_env/bin/python3 src/train.py
+	$(PYTHON) src/train.py
 
 test:
-	./checkin_env/bin/pytest tests/
+	$(PYTEST) tests/
