@@ -13,10 +13,8 @@ def parse_age(age_str):
 
 def load_data():
     # 1. Fetch data
-    # fetch dataset 296: Diabetes 130-US hospitals for years 1999-2008
     diabetes = fetch_ucirepo(id=296)
 
-    # data (as pandas dataframes)
     X = diabetes.data.features
     y = diabetes.data.targets
 
@@ -25,6 +23,10 @@ def load_data():
     # Filter out missing readmitted (if any)
     df = df.dropna(subset=['readmitted'])
     
+    # Filter out hospice/dead patients (cannot be readmitted)
+    invalid_discharge = [11, 13, 14, 19, 20, 21]
+    df = df[~df['discharge_disposition_id'].isin(invalid_discharge)]
+
     print("Data loaded. Shape:", df.shape)
 
     # 2. Data Processing
@@ -32,27 +34,28 @@ def load_data():
     # Convert 'readmitted' to a binary target: 1 if '<30', 0 otherwise
     df['target'] = df['readmitted'].apply(lambda x: 1 if x == '<30' else 0)
     df['age_num'] = df['age'].apply(parse_age)
+
+    # Drop non-predictive columns. Keep medical_specialty and diag_1/2/3
+    cols_to_drop = ['readmitted', 'encounter_id', 'patient_nbr', 'weight', 'payer_code']
+    df = df.drop(columns=[c for c in cols_to_drop if c in df.columns])
+
+    # Identify categorical columns
+    cat_cols = df.select_dtypes(include=['object']).columns.tolist()
     
-    # Select features based on the proposal
-    selected_features = ['age_num', 'time_in_hospital', 'num_procedures', 'num_medications']
+    # Force some IDs to be treated as categorical instead of continuous
+    id_cols = ['admission_type_id', 'discharge_disposition_id', 'admission_source_id']
+    for c in id_cols:
+        if c not in cat_cols and c in df.columns:
+            cat_cols.append(c)
 
-    markers_features = [
-    'max_glu_serum', 'A1Cresult', 'metformin', 'repaglinide',
-    'nateglinide', 'chlorpropamide', 'glimepiride', 'acetohexamide',
-    'glipizide', 'glyburide', 'tolbutamide', 'pioglitazone',
-    'rosiglitazone', 'acarbose', 'miglitol', 'troglitazone',
-    'tolazamide', 'examide', 'citoglipton', 'insulin',
-    'glyburide-metformin', 'glipizide-metformin',
-    'glimepiride-pioglitazone', 'metformin-rosiglitazone',
-    'metformin-pioglitazone', 'change', 'diabetesMed'
-    ]
+    # Fill NaNs in categorical columns to 'Missing'
+    df[cat_cols] = df[cat_cols].fillna('Missing')
 
-    #Creates features for each marker. ie change_yes, change_no
-    df_marker = df[markers_features]
-    df_markers = pd.get_dummies(df_marker, drop_first=True)
+    # Separate high-cardinality features for TargetEncoding, and low-cardinality for OrdinalEncoding
+    high_card = ['diag_1', 'diag_2', 'diag_3', 'medical_specialty']
+    low_card = [c for c in cat_cols if c not in high_card]
 
-    analysis_df = pd.concat([df[selected_features], df_markers, df[['target']]], axis=1).dropna()
-    
-    selected_features = selected_features + list(df_markers.columns)
+    selected_features = [c for c in df.columns if c != 'target']
+    analysis_df = df # HistGradientBoosting handles continuous NaNs natively!
 
-    return analysis_df, selected_features
+    return analysis_df, selected_features, high_card, low_card
