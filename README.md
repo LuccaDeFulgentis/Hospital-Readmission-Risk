@@ -1,5 +1,5 @@
 # Predicting 30-Day Hospital Readmissions for Diabetic Patients
-[![Video Description](https://youtu.be/9ZT1fPt-2uo)](https://youtu.be/9ZT1fPt-2uo)
+[Video Description](https://youtu.be/9ZT1fPt-2uo)
 
 ## 1. How to Build, Run, and Test the Code
 
